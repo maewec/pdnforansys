@@ -327,17 +327,10 @@ class ReadDataFromAnsys(FormMacrosAnsysData):
         self.exist_nodeslist = exist_nodeslist
         self.dict_res = dict()
         self.nodeslist = self.read_nodeslist(postfix='full')
-        flag = True                                                             # проверка, списка узлов на непрерывное возрастание на 1 от нуля
-        for i in self.nodeslist:
-            if self.nodeslist[i-1] != i:
-                flag = False
-                break
+        self.__index = self.nodeslist - 1
         if self.exist_nodeslist:                                                # если существуют наборы узлов/элементов, то добавляется индекс
             new_list = self.read_nodeslist()
-            if flag:                                                            # быстрое вычисление индекса
-                self.__index = new_list - 1
-            else:                                                               # медленное вычисление индекса
-                self.__index = self.index_numpy_array(self.nodeslist, new_list)
+            self.__index = self.index_numpy_array(self.nodeslist, new_list)
             self.nodeslist = new_list
 
     def read_nodeslist(self, postfix=''):
@@ -422,10 +415,7 @@ class ReadDataFromAnsys(FormMacrosAnsysData):
             l = src.read().splitlines()
             l = [type_items(float(item)) for item in l]
         arr = np.array(l, type_items)
-        if self.exist_nodeslist:
-            return arr[self.__index]
-        else:
-            return arr
+        return arr[self.__index]
 
     def __str__(self):
         return 'Набор данных: {0}\nШаги времени: {1}\nСуществование списка узлов: {2}\n\
