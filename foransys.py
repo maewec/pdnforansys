@@ -377,18 +377,12 @@ class ReadDataFromAnsys(FormMacrosAnsysData):
         index_arr = np.zeros(len(val), dtype=int)
         if val is int:
             val = list((val,))
-        if isinstance(val, (list, tuple, np.ndarray)):
-            k = 0
-            for i in val:
-                if i % 10000 == 0:
-                    print(i)
-                try:
-                    index_arr[k] = np.where(i == arr)[0][0]
-                    k += 1
-                except IndexError:
-                    raise IndexError('Узла {0} не существует'.format(i))
-        else:
-            raise ValueError('val должен быть int или списком int')
+        k = 0
+        for i in range(len(val)):
+            while k < len(arr):
+                if val[i] == arr[k]:
+                    index_arr[i] = k
+                k += 1
         return index_arr
 
     def form_dict_res(self):
