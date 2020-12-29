@@ -374,16 +374,28 @@ class ReadDataFromAnsys(FormMacrosAnsysData):
     @staticmethod
     def index_numpy_array(arr, val):
         """Возвращает индексы элементов val массиса arr"""
-        index_arr = np.zeros(len(val), dtype=int)
+        index_arr = []
         if val is int:
             val = list((val,))
         k = 0
-        for i in range(len(val)):
-            while k < len(arr):
-                if val[i] == arr[k]:
-                    index_arr[i] = k
-                k += 1
-        return index_arr
+        i = 0
+        i_max = len(val) - 1
+        while k < len(arr):
+            if val[i] == arr[k]:
+                index_arr.append(k)
+                i += 1
+                if i > i_max:
+                    break
+                # проверка на возрастание узла из выборки, если не по возрастанию,
+                # то счетчик k скидывается
+                if i >= 1 and val[i-1] > val[i]:
+                    k = -1
+            k += 1
+        if len(index_arr) - 1 < i_max:
+            n = val[len(index_arr)-1]
+            raise IndexError(f"Нет узла номер {n}")
+
+        return np.array(index_arr, dtype=int)
 
     def form_dict_res(self):
         """Чтение файлов и формирование словаря результатов
