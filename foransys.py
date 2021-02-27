@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # -*- coding: utf-8 -*-
 """
 Набор для обработки Ansys
@@ -1155,4 +1154,3 @@ def main():
 
 if __name__ == '__main__':
     main()
->>>>>>> 1cefc16ffc7bffc8455dae9bdc989fdd75a1956a
