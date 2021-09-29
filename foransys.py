@@ -6,6 +6,7 @@
 import os
 import subprocess
 import numpy as np
+import threading
 
 class WriteReadAnsysData:
     """Общий надкласс для чтения и записи данных Ansys
@@ -401,13 +402,16 @@ class ReadDataFromAnsys(FormMacrosAnsysData):
     def __form_dict_res_2(self, name_item):
         """Чтение файлов и формирование словаря результатов - 2
         Для каждого словаря параметров формируется словарь шагов нагружения"""
-        dict_2 = dict()
+        self.dict_2 = dict()                # переменная для сохранения результатов потоков
+        self.lock = threading.Lock()        # блокировка
         for time in self.list_time:
             filename = '{0}_{1}_{2}.tmp'.format(self.name_output, name_item, time)
-            dict_2[time] = self.read_data_ansys(filename, float)
-        return dict_2
+            thread = threading.Thread(target=self.read_data_ansys, args=(filename, time, float))
+            thread.start()
+            thread.join()
+        return self.dict_2
 
-    def read_data_ansys(self, filename, type_items=float):
+    def read_data_ansys(self, filename, time, type_items=float):
         """Чтение файлов и формирование словаря результатов - 3
         Значения словаря шагов нагружения - массив данных numpy"""
         with open(os.path.join(self.work_dir, self.tmp_dir, filename)) as src:
@@ -416,9 +420,11 @@ class ReadDataFromAnsys(FormMacrosAnsysData):
         arr = np.array(l, type_items)
         arr = arr[self.__index_full]
         if self.exist_nodeslist:
-            return arr[self.__index]
+            with self.lock:
+                self.dict_2[time] = arr[self.__index]
         else:
-            return arr
+            with self.lock:
+                self.dict_2[time] = arr
 
     def __str__(self):
         return 'Набор данных: {0}\nШаги времени: {1}\nСуществование списка узлов: {2}\n\
