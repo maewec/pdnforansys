@@ -395,12 +395,11 @@ class ReadDataFromAnsys(FormMacrosAnsysData):
     def form_dict_res(self):
         """Чтение файлов и формирование словаря результатов
         Формируется словарь параметров"""
-        self.dict_1 = dict()
         self.lock = threading.Lock()        # блокировка
         num_start_threads = len(threading.enumerate())
         for item in self.list_item:
             name_item = '{0}_{1}'.format(item[0], item[1])
-            self.dict_1[name_item] = dict()
+            self.dict_res[name_item] = dict()
             for time in self.list_time:
                 filename = '{0}_{1}_{2}.tmp'.format(self.name_output, name_item, time)
                 num_threads = 3
@@ -419,14 +418,14 @@ class ReadDataFromAnsys(FormMacrosAnsysData):
         Значения словаря шагов нагружения - массив данных numpy"""
         full_path = os.path.join(self.work_dir, self.tmp_dir, filename)
         arr = pd.read_csv(full_path, header=None, dtype=type_items)
-        arr = np.array(arr).T
+        arr = np.array(arr).T[0]
         arr = arr[self.__index_full]
         if self.exist_nodeslist:
             with self.lock:
-                self.dict_1[name_item][time] = arr[self.__index]
+                self.dict_res[name_item][time] = arr[self.__index]
         else:
             with self.lock:
-                self.dict_1[name_item][time] = arr
+                self.dict_res[name_item][time] = arr
 
     def __str__(self):
         return 'Набор данных: {0}\nШаги времени: {1}\nСуществование списка узлов: {2}\n\
