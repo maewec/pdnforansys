@@ -393,25 +393,18 @@ class ReadDataFromAnsys(FormMacrosAnsysData):
     def form_dict_res(self):
         """Чтение файлов и формирование словаря результатов
         Формируется словарь параметров"""
-        dict_1 = dict()
+        self.dict_1 = dict()
+        self.lock = threading.Lock()        # блокировка
         for item in self.list_item:
             name_item = '{0}_{1}'.format(item[0], item[1])
-            dict_1[name_item] = self.__form_dict_res_2(name_item)
-        self.dict_res = dict_1
+            self.dict_1[name_item] = dict()
+            for time in self.list_time:
+                filename = '{0}_{1}_{2}.tmp'.format(self.name_output, name_item, time)
+                thread = threading.Thread(target=self.read_data_ansys, args=(filename, name_item, time, float))
+                thread.start()
+                thread.join()
 
-    def __form_dict_res_2(self, name_item):
-        """Чтение файлов и формирование словаря результатов - 2
-        Для каждого словаря параметров формируется словарь шагов нагружения"""
-        self.dict_2 = dict()                # переменная для сохранения результатов потоков
-        self.lock = threading.Lock()        # блокировка
-        for time in self.list_time:
-            filename = '{0}_{1}_{2}.tmp'.format(self.name_output, name_item, time)
-            thread = threading.Thread(target=self.read_data_ansys, args=(filename, time, float))
-            thread.start()
-            thread.join()
-        return self.dict_2
-
-    def read_data_ansys(self, filename, time, type_items=float):
+    def read_data_ansys(self, filename, name_item, time, type_items=float):
         """Чтение файлов и формирование словаря результатов - 3
         Значения словаря шагов нагружения - массив данных numpy"""
         with open(os.path.join(self.work_dir, self.tmp_dir, filename)) as src:
@@ -421,10 +414,10 @@ class ReadDataFromAnsys(FormMacrosAnsysData):
         arr = arr[self.__index_full]
         if self.exist_nodeslist:
             with self.lock:
-                self.dict_2[time] = arr[self.__index]
+                self.dict_1[name_item][time] = arr[self.__index]
         else:
             with self.lock:
-                self.dict_2[time] = arr
+                self.dict_1[name_item][time] = arr
 
     def __str__(self):
         return 'Набор данных: {0}\nШаги времени: {1}\nСуществование списка узлов: {2}\n\
