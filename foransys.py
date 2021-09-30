@@ -7,6 +7,7 @@ import os
 import subprocess
 import numpy as np
 import threading
+import pandas as pd
 
 class WriteReadAnsysData:
     """Общий надкласс для чтения и записи данных Ansys
@@ -407,7 +408,9 @@ class ReadDataFromAnsys(FormMacrosAnsysData):
     def read_data_ansys(self, filename, name_item, time, type_items=float):
         """Чтение файлов и формирование словаря результатов - 3
         Значения словаря шагов нагружения - массив данных numpy"""
-        arr = np.loadtxt(os.path.join(self.work_dir, self.tmp_dir, filename), dtype=type_items)
+        full_path = os.path.join(self.work_dir, self.tmp_dir, filename)
+        arr = pd.read_csv(full_path, header=None, dtype=type_items)
+        arr = np.array(arr).T
         arr = arr[self.__index_full]
         if self.exist_nodeslist:
             with self.lock:
