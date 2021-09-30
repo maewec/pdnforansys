@@ -7,6 +7,7 @@ import os
 import subprocess
 import numpy as np
 import threading
+from time import sleep
 
 class WriteReadAnsysData:
     """Общий надкласс для чтения и записи данных Ansys
@@ -395,14 +396,22 @@ class ReadDataFromAnsys(FormMacrosAnsysData):
         Формируется словарь параметров"""
         self.dict_1 = dict()
         self.lock = threading.Lock()        # блокировка
+        num_start_threads = len(threading.enumerate())
         for item in self.list_item:
             name_item = '{0}_{1}'.format(item[0], item[1])
             self.dict_1[name_item] = dict()
             for time in self.list_time:
                 filename = '{0}_{1}_{2}.tmp'.format(self.name_output, name_item, time)
-                thread = threading.Thread(target=self.read_data_ansys, args=(filename, name_item, time, float))
-                thread.start()
-                thread.join()
+                num_threads = 3
+                while True:
+                    # если число потоков больше предела, то ожидаем освобождения и запускаем
+                    num_th = len(threading.enumerate())
+                    if num_th < num_threads + num_start_threads:
+                        thread = threading.Thread(target=self.read_data_ansys, args=(filename, name_item, time, float))
+                        thread.start()
+                        break
+                    else:
+                        sleep(1)
 
     def read_data_ansys(self, filename, name_item, time, type_items=float):
         """Чтение файлов и формирование словаря результатов - 3
