@@ -407,10 +407,7 @@ class ReadDataFromAnsys(FormMacrosAnsysData):
     def read_data_ansys(self, filename, name_item, time, type_items=float):
         """Чтение файлов и формирование словаря результатов - 3
         Значения словаря шагов нагружения - массив данных numpy"""
-        with open(os.path.join(self.work_dir, self.tmp_dir, filename)) as src:
-            l = src.read().splitlines()
-            l = [type_items(float(item)) for item in l]
-        arr = np.array(l, type_items)
+        arr = np.loadtxt(os.path.join(self.work_dir, self.tmp_dir, filename), dtype=type_items)
         arr = arr[self.__index_full]
         if self.exist_nodeslist:
             with self.lock:
