@@ -403,15 +403,18 @@ class ReadDataFromAnsys(FormMacrosAnsysData):
             for time in self.list_time:
                 filename = '{0}_{1}_{2}.tmp'.format(self.name_output, name_item, time)
                 num_threads = 3
+                threads = []
                 while True:
                     # если число потоков больше предела, то ожидаем освобождения и запускаем
                     num_th = len(threading.enumerate())
                     if num_th < num_threads + num_start_threads:
                         thread = threading.Thread(target=self.read_data_ansys, args=(filename, name_item, time, float))
                         thread.start()
+                        threads.append(thread)
                         break
                     else:
                         sleep(1)
+                for thread in threads: thread.join()
 
     def read_data_ansys(self, filename, name_item, time, type_items=float):
         """Чтение файлов и формирование словаря результатов - 3
