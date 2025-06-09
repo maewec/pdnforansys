@@ -366,6 +366,30 @@ class ReadDataFromAnsys(FormMacrosAnsysData):
 
         return new_dict
 
+    def get_item_node_time(self, *nodes):
+        """Вывод словаря с ключами item и значениями в виде двумерного массива (node, time)
+        Parameters:
+            *nodes - список узлов
+        Return:
+            {item: array(node, time)}, {node: index}, {time: index}
+        """
+        if isinstance(nodes[0], (list, tuple, np.ndarray)):  # проверяем, являлся ли первый аргумент списком и раскрываем его
+            new_list = nodes[0]
+        else:
+            new_list = tuple(nodes,)
+        index = self.index_numpy_array(self.nodeslist, new_list)  # индексы выбранных узлов
+        new_dict = dict()
+        time_dict = dict()
+        node_dict = dict(zip(new_list, range(len(new_list))))
+
+        for key_item in self.dict_res:
+            arr = np.zeros((len(index), len(self.dict_res[key_item])), dtype=float)
+            for index_time, key_time in enumerate(self.dict_res[key_item]):
+                time_dict[key_time] = index_time
+                arr[:, index_time] = self.dict_res[key_item][key_time][index]
+            new_dict[key_item] = arr
+        return new_dict, node_dict, time_dict
+
     @staticmethod
     def index_numpy_array(arr, val):
         """Возвращает индексы элементов val массиса arr"""
